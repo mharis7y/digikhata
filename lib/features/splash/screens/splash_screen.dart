@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../profile_setup/providers/business_provider.dart';
 import '../../../routes/app_routes.dart';
 
 /// Splash Screen — shows branding, then routes based on session state.
@@ -49,10 +50,30 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (auth.isAuthenticated) {
+      // Load the business profile from Supabase so Home screen has
+      // business name, type, category available right away.
+      final bizProvider = context.read<BusinessProvider>();
+      await bizProvider.loadProfile(auth.currentUser!.id);
+
+      if (!mounted) return;
+
       if (auth.isSuperAdmin) {
         Navigator.pushReplacementNamed(context, AppRoutes.superAdminDashboard);
       } else if (auth.currentUser!.isProfileSetupComplete) {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        // Safety check: if profile is marked complete but business data
+        // is missing (and user isn't "not a business person"), the
+        // previous save must have failed — send them back to setup.
+        final profile = bizProvider.profile;
+        final hasBusinessData = profile != null &&
+            (profile.isNotBusinessPerson ||
+                (profile.businessName != null &&
+                    profile.businessName!.isNotEmpty));
+
+        if (hasBusinessData) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.profileSetup);
+        }
       } else {
         Navigator.pushReplacementNamed(context, AppRoutes.profileSetup);
       }

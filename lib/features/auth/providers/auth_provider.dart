@@ -69,37 +69,47 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Loads (or creates) a user profile from Supabase.
+  /// Loads a user profile from Supabase.
+  /// Retries once on failure to avoid transient network/auth-token errors
+  /// from incorrectly treating an existing user as a new user.
   Future<void> _loadUserProfile(String userId, String email) async {
-    try {
-      final data = await _supabase
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
+    Map<String, dynamic>? data;
 
-      if (data != null) {
-        _currentUser = UserModel.fromJson(data);
-      } else {
-        // New user — profile not yet set up
-        _currentUser = UserModel(
-          id: userId,
-          email: email,
-          isProfileSetupComplete: false,
-          createdAt: DateTime.now(),
-        );
+    // Attempt up to 2 tries (initial + 1 retry)
+    for (int attempt = 0; attempt < 2; attempt++) {
+      try {
+        data = await _supabase
+            .from('profiles')
+            .select()
+            .eq('id', userId)
+            .maybeSingle();
+        break; // success — exit retry loop
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint(
+            'AuthProvider._loadUserProfile attempt ${attempt + 1} failed: $e',
+          );
+        }
+        if (attempt == 0) {
+          // Wait briefly before retry — gives token refresh time to settle
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        // If second attempt also fails, data stays null (handled below)
       }
-      notifyListeners();
-    } catch (_) {
-      // Fallback: treat as new user
+    }
+
+    if (data != null) {
+      _currentUser = UserModel.fromJson(data);
+    } else {
+      // Profile row genuinely doesn't exist yet (new user)
       _currentUser = UserModel(
         id: userId,
         email: email,
         isProfileSetupComplete: false,
         createdAt: DateTime.now(),
       );
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   /// Checks if there is an existing Supabase session on app start.

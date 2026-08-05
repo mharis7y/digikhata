@@ -3,12 +3,27 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/profile_setup/providers/business_provider.dart';
+import 'features/party/providers/party_provider.dart';
+import 'features/books/providers/stock_provider.dart';
+import 'features/books/providers/bill_provider.dart';
+import 'features/books/providers/cash_provider.dart';
+import 'features/books/providers/staff_provider.dart';
+import 'features/books/providers/expense_provider.dart';
 import 'features/splash/screens/splash_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/auth/screens/email_auth_screen.dart';
 import 'features/auth/screens/otp_verification_screen.dart';
 import 'features/profile_setup/screens/profile_setup_screen.dart';
 import 'features/home/screens/home_screen.dart';
+import 'features/books/screens/khata_books_screen.dart';
+import 'features/party/screens/party_screen.dart';
+import 'features/party/screens/add_party_screen.dart';
+import 'features/party/screens/customer_ledger_screen.dart';
+import 'features/party/screens/supplier_ledger_screen.dart';
+import 'features/party/screens/add_entry_screen.dart';
+import 'features/party/screens/bank_account_screen.dart';
+import 'features/party/models/party_model.dart';
+import 'features/party/models/ledger_entry_model.dart';
 import 'routes/app_routes.dart';
 
 class App extends StatelessWidget {
@@ -20,6 +35,12 @@ class App extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => BusinessProvider()),
+        ChangeNotifierProvider(create: (_) => PartyProvider()),
+        ChangeNotifierProvider(create: (_) => StockProvider()),
+        ChangeNotifierProvider(create: (_) => BillProvider()),
+        ChangeNotifierProvider(create: (_) => CashProvider()),
+        ChangeNotifierProvider(create: (_) => StaffProvider()),
+        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
       ],
       child: MaterialApp(
         title: 'DigiKhata',
@@ -51,6 +72,35 @@ class App extends StatelessWidget {
 
       case AppRoutes.home:
         return _fade(const HomeScreen());
+
+      case AppRoutes.khataBooks:
+        final initialTab = settings.arguments as String? ?? 'cash';
+        return _slide(KhataBooksScreen(initialTab: initialTab));
+
+      // ─── Party routes ─────────────────────────────────────────────────────
+      case AppRoutes.party:
+        return _slide(const PartyScreen());
+
+      case AppRoutes.addParty:
+        final type = settings.arguments as PartyType? ?? PartyType.customer;
+        return _slide(AddPartyScreen(partyType: type));
+
+      case AppRoutes.customerLedger:
+        final party = settings.arguments as PartyModel;
+        return _slide(CustomerLedgerScreen(party: party));
+
+      case AppRoutes.supplierLedger:
+        final party = settings.arguments as PartyModel;
+        return _slide(SupplierLedgerScreen(party: party));
+
+      case AppRoutes.addEntry:
+        final args = settings.arguments as Map<String, dynamic>;
+        final party = args['party'] as PartyModel;
+        final entryType = args['entryType'] as EntryType;
+        return _slide(AddEntryScreen(party: party, entryType: entryType));
+
+      case AppRoutes.bankAccount:
+        return _slide(const BankAccountScreen());
 
       // Other routes — placeholder until implemented
       default:

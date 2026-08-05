@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../profile_setup/providers/business_provider.dart';
 import '../../../routes/app_routes.dart';
 
 /// OTP Verification Screen.
@@ -59,7 +60,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     if (success) {
       final user = auth.currentUser!;
       if (user.isProfileSetupComplete) {
-        // Existing user — go straight to Home
+        // Existing user — load business profile then go to Home
+        final bizProvider = context.read<BusinessProvider>();
+        await bizProvider.loadProfile(user.id);
+        if (!mounted) return;
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.home,
