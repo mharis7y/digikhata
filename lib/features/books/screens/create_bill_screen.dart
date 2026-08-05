@@ -7,6 +7,7 @@ import '../models/bill.dart';
 import '../providers/cash_provider.dart';
 import '../../party/providers/party_provider.dart';
 import '../../party/models/party_model.dart';
+import '../../notifications/providers/notification_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateBillScreen extends StatefulWidget {
@@ -203,6 +204,11 @@ class _CreateBillScreenState extends State<CreateBillScreen> {
       if (billProvider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(billProvider.errorMessage!)));
       } else {
+        context.read<NotificationProvider>().sendInAppNotification(
+          title: 'Bill Saved',
+          body: 'Sales bill created for Rs ${_invoiceAmount.toStringAsFixed(0)}',
+          type: 'success',
+        );
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bill saved successfully!')));
         Navigator.pop(context); // close screen
       }

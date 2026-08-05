@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../profile_setup/providers/business_provider.dart';
+import '../../notifications/providers/notification_provider.dart';
 import '../widgets/side_menu_drawer.dart';
 import '../../../routes/app_routes.dart';
 
@@ -11,8 +12,21 @@ import '../../../routes/app_routes.dart';
 /// - KHATA grid: Party, Cash, Stock, Bills, Staff, Expense
 /// - "View Dashboard" shortcut → Dashboard screen
 /// - Other: Calculator, RecycleBin
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().loadNotifications();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +34,7 @@ class HomeScreen extends StatelessWidget {
     final businessProvider = context.watch<BusinessProvider>();
 
     final businessName = businessProvider.profile?.businessName ??
-        authProvider.currentUser?.email.split('@').first ??
+        authProvider.currentUser?.email?.split('@').first ??
         'My Business';
 
     return Scaffold(
@@ -291,12 +305,47 @@ class _TopBar extends StatelessWidget {
           ),
 
           // Notification Bell
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: Color(0xFF6B7280), size: 24),
-            onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.notifications),
-            tooltip: 'Notifications',
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, child) {
+              final unreadCount = notificationProvider.unreadCount;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined,
+                        color: Color(0xFF6B7280), size: 24),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, AppRoutes.notifications),
+                    tooltip: 'Notifications',
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
 
           // Quick Apps Grid Icon

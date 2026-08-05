@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../notifications/providers/notification_provider.dart';
 import '../providers/stock_provider.dart';
 import '../../party/providers/party_provider.dart';
 import '../../party/models/party_model.dart';
@@ -85,7 +86,14 @@ class _StockTransactionScreenState extends State<StockTransactionScreen> {
     setState(() => _isSaving = false);
 
     if (stockProvider.errorMessage == null) {
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        context.read<NotificationProvider>().sendInAppNotification(
+          title: 'Stock ${widget.transactionType.toUpperCase()}',
+          body: '${widget.transactionType == 'in' ? 'Added' : 'Removed'} $qty ${widget.item.name}',
+          type: 'success',
+        );
+        Navigator.pop(context);
+      }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(stockProvider.errorMessage!)));

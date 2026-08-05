@@ -10,6 +10,10 @@ import 'features/books/providers/cash_provider.dart';
 import 'features/books/providers/staff_provider.dart';
 import 'features/books/providers/expense_provider.dart';
 import 'features/splash/screens/splash_screen.dart';
+import 'features/dashboard/providers/dashboard_provider.dart';
+import 'features/dashboard/screens/dashboard_screen.dart';
+import 'features/notifications/providers/notification_provider.dart';
+import 'features/notifications/screens/notifications_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/auth/screens/email_auth_screen.dart';
 import 'features/auth/screens/otp_verification_screen.dart';
@@ -42,6 +46,8 @@ class App extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CashProvider()),
         ChangeNotifierProvider(create: (_) => StaffProvider()),
         ChangeNotifierProvider(create: (_) => ExpenseProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
         title: 'DigiKhata',
@@ -105,6 +111,14 @@ class App extends StatelessWidget {
 
       case AppRoutes.bankAccount:
         return _slide(const BankAccountScreen());
+
+      // ─── Dashboard ────────────────────────────────────────────────────────
+      case AppRoutes.dashboard:
+        return _slide(const DashboardScreen());
+
+      // ─── Notifications ────────────────────────────────────────────────────
+      case AppRoutes.notifications:
+        return _slide(const NotificationsScreen());
 
       // Other routes — placeholder until implemented
       default:

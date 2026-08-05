@@ -5,6 +5,8 @@ import '../models/party_model.dart';
 import '../models/ledger_entry_model.dart';
 import '../providers/party_provider.dart';
 import '../../../routes/app_routes.dart';
+import '../../../core/services/pdf_export_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Customer Ledger Screen per agents.md:
 /// - Header: name, "Customer" tag, call icon, overflow menu
@@ -303,14 +305,20 @@ class _LedgerAppBar extends StatelessWidget {
                 ),
               ),
               // Call icon
-              if (party.phone != null)
+              if (party.phone != null && party.phone!.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.call_rounded, color: Colors.white),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Calling feature coming soon!')),
-                    );
+                  onPressed: () async {
+                    final Uri launchUri = Uri(scheme: 'tel', path: party.phone);
+                    if (await canLaunchUrl(launchUri)) {
+                      await launchUrl(launchUri);
+                    } else {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Could not launch dialer')),
+                        );
+                      }
+                    }
                   },
                 ),
               // Overflow menu
@@ -441,12 +449,30 @@ class _QuickActionBar extends StatelessWidget {
               icon: Icons.picture_as_pdf_rounded,
               label: 'Report',
               iconColor: const Color(0xFFF59E0B),
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Report coming soon!'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              ),
+              onTap: () async {
+                final provider = context.read<PartyProvider>();
+                if (provider.currentLedgerEntries.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No entries to generate report.')),
+                  );
+                  return;
+                }
+                try {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Generating Report...')),
+                  );
+                  await PdfExportService.generateAndShareLedgerReport(
+                    party,
+                    provider.currentLedgerEntries,
+                  );
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error generating report: $e')),
+                    );
+                  }
+                }
+              },
             ),
           ),
           const SizedBox(width: 10),
@@ -455,12 +481,26 @@ class _QuickActionBar extends StatelessWidget {
               icon: Icons.notifications_rounded,
               label: 'Reminder',
               iconColor: const Color(0xFF9CA3AF),
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Reminder coming soon!'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              ),
+              onTap: () async {
+                if (party.phone == null || party.phone!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No phone number added for this party.')),
+                  );
+                  return;
+                }
+                final balanceLabel = party.balance >= 0 ? "You'll Get" : "You'll Give";
+                final body = "Hi ${party.name}, this is a reminder regarding your balance. $balanceLabel Rs ${party.balance.abs().toStringAsFixed(0)}.";
+                final Uri launchUri = Uri(scheme: 'sms', path: party.phone, queryParameters: {'body': body});
+                if (await canLaunchUrl(launchUri)) {
+                  await launchUrl(launchUri);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Could not launch SMS app')),
+                    );
+                  }
+                }
+              },
             ),
           ),
           const SizedBox(width: 10),
@@ -469,12 +509,24 @@ class _QuickActionBar extends StatelessWidget {
               icon: Icons.sms_rounded,
               label: 'SMS',
               iconColor: const Color(0xFF9CA3AF),
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('SMS coming soon!'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              ),
+              onTap: () async {
+                if (party.phone == null || party.phone!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No phone number added for this party.')),
+                  );
+                  return;
+                }
+                final Uri launchUri = Uri(scheme: 'sms', path: party.phone);
+                if (await canLaunchUrl(launchUri)) {
+                  await launchUrl(launchUri);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Could not launch SMS app')),
+                    );
+                  }
+                }
+              },
             ),
           ),
         ],

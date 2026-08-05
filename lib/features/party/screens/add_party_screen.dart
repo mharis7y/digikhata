@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../notifications/providers/notification_provider.dart';
 import '../providers/party_provider.dart';
 import '../models/party_model.dart';
 
@@ -64,6 +65,11 @@ class _AddPartyScreenState extends State<AddPartyScreen> {
     setState(() => _isSaving = false);
 
     if (success && mounted) {
+      context.read<NotificationProvider>().sendInAppNotification(
+        title: 'New $_typeLabel Added',
+        body: 'Successfully added ${_nameController.text.trim()} to your $_typeLabel list',
+        type: 'success',
+      );
       Navigator.pop(context);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
