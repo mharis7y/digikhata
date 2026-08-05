@@ -16,6 +16,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
   final _phoneController = TextEditingController();
   final _cnicController = TextEditingController();
   final _salaryController = TextEditingController();
+  DateTime _joiningDate = DateTime.now();
   String _salaryType = 'Monthly';
   bool _isSaving = false;
 
@@ -44,7 +45,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
       cnic: _cnicController.text.trim().isNotEmpty ? _cnicController.text.trim() : null,
       salaryType: _salaryType.toLowerCase(),
       salaryAmount: double.parse(_salaryController.text.trim()),
-      joiningDate: DateTime.now(),
+      joiningDate: _joiningDate,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -134,6 +135,27 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              // Joining Date
+              InkWell(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _joiningDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) setState(() => _joiningDate = picked);
+                },
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Joining Date',
+                    prefixIcon: const Icon(Icons.calendar_today_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text('${_joiningDate.day}/${_joiningDate.month}/${_joiningDate.year}'),
+                ),
               ),
               const SizedBox(height: 32),
               SizedBox(

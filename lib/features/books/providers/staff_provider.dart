@@ -138,4 +138,29 @@ class StaffProvider extends ChangeNotifier {
   void _clearError() {
     _errorMessage = null;
   }
+
+  int getWorkingDaysForMonth(String staffId, int year, int month) {
+    return _attendanceList.where((a) => 
+      a.staffId == staffId && 
+      a.date.year == year && 
+      a.date.month == month && 
+      a.status == 'present'
+    ).length;
+  }
+
+  double calculateNetSalary(Staff staff, int year, int month) {
+    if (staff.salaryType == 'monthly') {
+      final daysInMonth = DateTime(year, month + 1, 0).day;
+      final workingDays = getWorkingDaysForMonth(staff.id, year, month);
+      return (staff.salaryAmount / daysInMonth) * workingDays;
+    }
+    // For other types (weekly, daily, hourly), a different logic would apply.
+    // For simplicity, falling back to basic calculation based on attendance
+    if (staff.salaryType == 'daily') {
+      final workingDays = getWorkingDaysForMonth(staff.id, year, month);
+      return staff.salaryAmount * workingDays;
+    }
+    
+    return staff.salaryAmount;
+  }
 }

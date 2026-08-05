@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/staff_provider.dart';
 import 'add_staff_screen.dart';
+import 'individual_staff_screen.dart';
+import 'staff_payment_slip_screen.dart';
 
 class StaffBookScreen extends StatefulWidget {
   final bool isNested;
@@ -154,7 +156,11 @@ class _StaffBookScreenState extends State<StaffBookScreen> with SingleTickerProv
                       children: [
                         _buildAttendanceButton(provider, staff.id, 'present', 'P', const Color(0xFF22C55E)),
                         const SizedBox(width: 8),
+                        _buildAttendanceButton(provider, staff.id, 'half_day', 'H', const Color(0xFFF59E0B)),
+                        const SizedBox(width: 8),
                         _buildAttendanceButton(provider, staff.id, 'absent', 'A', const Color(0xFFEF4444)),
+                        const SizedBox(width: 8),
+                        _buildAttendanceButton(provider, staff.id, 'late', 'L', const Color(0xFF3B82F6)),
                       ],
                     )
                   ],
@@ -225,14 +231,16 @@ class _StaffBookScreenState extends State<StaffBookScreen> with SingleTickerProv
             itemCount: provider.staffList.length,
             itemBuilder: (context, index) {
               final staff = provider.staffList[index];
+              final calculatedSalary = provider.calculateNetSalary(staff, _selectedDate.year, _selectedDate.month);
               return ListTile(
-                title: Text(staff.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('${staff.salaryType} - Rs ${staff.salaryAmount}'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => IndividualStaffScreen(staff: staff)));
+                },
+                title: Text(staff.name, style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                subtitle: Text('${staff.salaryType} - Net Salary: Rs ${calculatedSalary.toStringAsFixed(2)}'),
                 trailing: ElevatedButton(
                   onPressed: () {
-                     // Simple dialog to add payroll
-                     provider.addPayroll(staff.id, staff.salaryAmount, DateTime.now(), 'Salary');
-                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Salary paid')));
+                     Navigator.push(context, MaterialPageRoute(builder: (_) => StaffPaymentSlipScreen(staff: staff, initialAmount: calculatedSalary)));
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF285CCC)),
                   child: const Text('PAY', style: TextStyle(color: Colors.white)),
