@@ -15,6 +15,7 @@ import 'features/auth/screens/email_auth_screen.dart';
 import 'features/auth/screens/otp_verification_screen.dart';
 import 'features/profile_setup/screens/profile_setup_screen.dart';
 import 'features/home/screens/home_screen.dart';
+import 'features/home/screens/calculator_screen.dart';
 import 'features/books/screens/khata_books_screen.dart';
 import 'features/party/screens/party_screen.dart';
 import 'features/party/screens/add_party_screen.dart';
@@ -72,6 +73,9 @@ class App extends StatelessWidget {
 
       case AppRoutes.home:
         return _fade(const HomeScreen());
+
+      case AppRoutes.calculator:
+        return _slide(const CalculatorScreen());
 
       case AppRoutes.khataBooks:
         final initialTab = settings.arguments as String? ?? 'cash';

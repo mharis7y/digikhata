@@ -168,15 +168,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: _OtherCard(
-                            title: 'Recycle Bin',
-                            subtitle: 'Restore deleted entries',
-                            icon: Icons.delete_outline_rounded,
-                            onTap: () => Navigator.pushNamed(
-                                context, AppRoutes.recycleBin),
-                          ),
-                        ),
+                        const Expanded(child: SizedBox()),
                       ],
                     ),
                   ],
@@ -356,14 +348,7 @@ class _TopBar extends StatelessWidget {
                       Navigator.pushNamed(context, AppRoutes.calculator);
                     },
                   ),
-                  _QuickAppItem(
-                    icon: Icons.delete_outline_rounded,
-                    label: 'Recycle Bin',
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.pushNamed(context, AppRoutes.recycleBin);
-                    },
-                  ),
+
                   _QuickAppItem(
                     icon: Icons.cloud_upload_rounded,
                     label: 'Backup',

@@ -175,14 +175,6 @@ class SideMenuDrawer extends StatelessWidget {
                       Navigator.pushNamed(context, AppRoutes.calculator);
                     },
                   ),
-                  _DrawerItem(
-                    icon: Icons.delete_outline_rounded,
-                    title: 'Recycle Bin',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, AppRoutes.recycleBin);
-                    },
-                  ),
 
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
